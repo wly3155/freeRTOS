@@ -1,6 +1,20 @@
+/* Copyright 2018 Canaan Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 /*
- * FreeRTOS Kernel V10.1.1
- * Copyright (C) 2018 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
+ * FreeRTOS Kernel V10.0.1
+ * Copyright (C) 2017 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -47,13 +61,13 @@
 #if( ( configCHECK_FOR_STACK_OVERFLOW == 1 ) && ( portSTACK_GROWTH < 0 ) )
 
 	/* Only the current stack state is to be checked. */
-	#define taskCHECK_FOR_STACK_OVERFLOW()																\
-	{																									\
-		/* Is the currently saved stack pointer within the stack limit? */								\
-		if( pxCurrentTCB->pxTopOfStack <= pxCurrentTCB->pxStack )										\
-		{																								\
-			vApplicationStackOverflowHook( ( TaskHandle_t ) pxCurrentTCB, pxCurrentTCB->pcTaskName );	\
-		}																								\
+	#define taskCHECK_FOR_STACK_OVERFLOW()																                \
+	{																									                \
+		/* Is the currently saved stack pointer within the stack limit? */								                \
+		if( pxCurrentTCB[uxPsrId]->pxTopOfStack <= pxCurrentTCB[uxPsrId]->pxStack )						                \
+		{																								                \
+			vApplicationStackOverflowHook( ( TaskHandle_t ) pxCurrentTCB[uxPsrId], pxCurrentTCB[uxPsrId]->pcTaskName );	\
+		}																								                \
 	}
 
 #endif /* configCHECK_FOR_STACK_OVERFLOW == 1 */
@@ -82,10 +96,10 @@
 		const uint32_t * const pulStack = ( uint32_t * ) pxCurrentTCB->pxStack;							\
 		const uint32_t ulCheckValue = ( uint32_t ) 0xa5a5a5a5;											\
 																										\
-		if( ( pulStack[ 0 ] != ulCheckValue ) ||														\
-			( pulStack[ 1 ] != ulCheckValue ) ||														\
-			( pulStack[ 2 ] != ulCheckValue ) ||														\
-			( pulStack[ 3 ] != ulCheckValue ) )															\
+		if( ( pulStack[ 0 ] != ulCheckValue ) ||												\
+			( pulStack[ 1 ] != ulCheckValue ) ||												\
+			( pulStack[ 2 ] != ulCheckValue ) ||												\
+			( pulStack[ 3 ] != ulCheckValue ) )												\
 		{																								\
 			vApplicationStackOverflowHook( ( TaskHandle_t ) pxCurrentTCB, pxCurrentTCB->pcTaskName );	\
 		}																								\
