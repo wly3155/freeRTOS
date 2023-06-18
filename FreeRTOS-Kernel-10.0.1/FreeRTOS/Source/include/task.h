@@ -1,3 +1,17 @@
+/* Copyright 2018 Canaan Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 /*
  * FreeRTOS Kernel V10.0.1
  * Copyright (C) 2017 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
@@ -219,6 +233,8 @@ is used in assert() statements. */
 #define taskSCHEDULER_NOT_STARTED	( ( BaseType_t ) 1 )
 #define taskSCHEDULER_RUNNING		( ( BaseType_t ) 2 )
 
+UBaseType_t uxTaskGetProcessorId(void);
+
 
 /*-----------------------------------------------------------
  * TASK CREATION API
@@ -324,6 +340,14 @@ is used in assert() statements. */
 							void * const pvParameters,
 							UBaseType_t uxPriority,
 							TaskHandle_t * const pxCreatedTask ) PRIVILEGED_FUNCTION;
+
+	BaseType_t xTaskCreateAtProcessor(UBaseType_t uxProcessor,
+		TaskFunction_t pxTaskCode,
+		const char * const pcName,	/*lint !e971 Unqualified char types are allowed for strings and single characters only. */
+		const configSTACK_DEPTH_TYPE usStackDepth,
+		void * const pvParameters,
+		UBaseType_t uxPriority,
+		TaskHandle_t * const pxCreatedTask) PRIVILEGED_FUNCTION;
 #endif
 
 /**
@@ -1163,7 +1187,7 @@ BaseType_t xTaskResumeFromISR( TaskHandle_t xTaskToResume ) PRIVILEGED_FUNCTION;
  * \defgroup vTaskStartScheduler vTaskStartScheduler
  * \ingroup SchedulerControl
  */
-void vTaskStartScheduler( void ) PRIVILEGED_FUNCTION;
+void vTaskStartScheduler() PRIVILEGED_FUNCTION;
 
 /**
  * task. h
@@ -2328,6 +2352,7 @@ void *pvTaskIncrementMutexHeldCount( void ) PRIVILEGED_FUNCTION;
  */
 void vTaskInternalSetTimeOutState( TimeOut_t * const pxTimeOut ) PRIVILEGED_FUNCTION;
 
+void vAddNewTaskToCurrentReadyList(TaskHandle_t pxNewTCB) PRIVILEGED_FUNCTION;
 
 #ifdef __cplusplus
 }
