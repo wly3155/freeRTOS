@@ -206,7 +206,21 @@ void vPortEndScheduler( void )
 	for( ;; );
 }
 
+UBaseType_t uxCPUClockRate = 390000000;
 
+UBaseType_t uxPortGetCPUClock()
+{
+    return uxCPUClockRate;
+}
 
+UBaseType_t uxPortGetProcessorId()
+{
+	UBaseType_t cpu_id = 0;
 
+	__asm volatile (
+		"csrr %0, mhartid"
+		: "=r"(cpu_id)
+	);
 
+	return cpu_id;
+}

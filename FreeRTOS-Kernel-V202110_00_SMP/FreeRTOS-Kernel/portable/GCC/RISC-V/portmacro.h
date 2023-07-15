@@ -81,7 +81,7 @@ not need to be guarded with a critical section. */
 #define portSTACK_GROWTH			( -1 )
 #define portTICK_PERIOD_MS			( ( TickType_t ) 1000 / configTICK_RATE_HZ )
 #ifdef __riscv64
-	#error This is the RV32 port that has not yet been adapted for 64.
+	//#error This is the RV32 port that has not yet been adapted for 64.
 	#define portBYTE_ALIGNMENT			16
 #else
 	#define portBYTE_ALIGNMENT			16
@@ -90,7 +90,7 @@ not need to be guarded with a critical section. */
 
 
 /* Scheduler utilities. */
-extern void vTaskSwitchContext( void );
+extern void vTaskSwitchContext( BaseType_t xCoreID );
 #define portYIELD() __asm volatile( "ecall" );
 #define portEND_SWITCHING_ISR( xSwitchRequired ) if( xSwitchRequired ) vTaskSwitchContext()
 #define portYIELD_FROM_ISR( x ) portEND_SWITCHING_ISR( x )
@@ -102,9 +102,25 @@ extern void vTaskSwitchContext( void );
 extern void vTaskEnterCritical( void );
 extern void vTaskExitCritical( void );
 
-#define portSET_INTERRUPT_MASK_FROM_ISR() 0
+#define portSET_INTERRUPT_MASK_FROM_ISR() ({					\
+	UBaseType_t ulState;							\
+	vTaskEnterCritical();							\
+	__asm volatile ("csrr %0, mie" :"=r" (ulState)::);			\
+	ulState;})
+
 #define portCLEAR_INTERRUPT_MASK_FROM_ISR( uxSavedStatusValue ) ( void ) uxSavedStatusValue
-#define portDISABLE_INTERRUPTS()	__asm volatile( "csrc mstatus, 8" )
+
+#define portDISABLE_INTERRUPTS() ({						\
+	UBaseType_t ulState;							\
+	__asm volatile ("csrr %0, mie" :"=r" (ulState)::);			\
+	__asm volatile ("csrc mstatus, 8" ::: "memory" );			\
+	ulState;})
+
+#define portRESTORE_INTERRUPTS( ulState ) ({					\
+	__asm volatile ("csrc mie, %0"	:"=r" (ulState)::);			\
+	__asm volatile ("csrs mstatus, 8");					\
+	})
+
 #define portENABLE_INTERRUPTS()		__asm volatile( "csrs mstatus, 8" )
 #define portENTER_CRITICAL()	vTaskEnterCritical()
 #define portEXIT_CRITICAL()		vTaskExitCritical()
@@ -176,7 +192,18 @@ definition is found. */
 	#error configMTIME_BASE_ADDRESS and configMTIMECMP_BASE_ADDRESS must be defined in FreeRTOSConfig.h.  Set them to zero if there is no MTIME (machine time) clock.  See https://www.FreeRTOS.org/Using-FreeRTOS-on-RISC-V.html
 #endif
 
+extern UBaseType_t uxPortGetProcessorId();
+#define portGET_CORE_ID() uxPortGetProcessorId()
 
+#define portCHECK_IF_IN_ISR()	(0)
+
+#define portGET_ISR_LOCK()
+#define portRELEASE_ISR_LOCK()
+
+#define portGET_TASK_LOCK()
+#define portRELEASE_TASK_LOCK()
+
+#define portYIELD_CORE(x)
 
 #ifdef __cplusplus
 }
