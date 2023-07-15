@@ -104,6 +104,7 @@ at the top of this file. */
 .global freertos_risc_v_trap_handler
 .global pxPortInitialiseStack
 .extern pxCurrentTCB
+.extern pxCurrentTCBs
 .extern ulPortTrapHandler
 .extern vTaskSwitchContext
 .extern xTaskIncrementTick
@@ -247,9 +248,15 @@ as_yet_unhandled:
 	j as_yet_unhandled
 
 processed_source:
-	load_x  t1, pxCurrentTCB			/* Load pxCurrentTCB. */
+#if( portasmRISCV_SMP_SUPPORT != 0 )
+	load_x sp, pxCurrentTCBs				/* Load pxCurrentTCBs. */
+	csrr t1, mhartid
+	slli t1, t1, 3
+	add sp, sp, t1
+#else
+	load_x  t1, pxCurrentTCB				/* Load pxCurrentTCB. */
 	load_x  sp, 0( t1 )				 	/* Read sp from first TCB member. */
-
+#endif
 	/* Load mret with the address of the next instruction in the task to run next. */
 	load_x t0, 0( sp )
 	csrw mepc, t0
@@ -293,6 +300,9 @@ processed_source:
 	mret
 	.endfunc
 /*-----------------------------------------------------------*/
+.global xPortSysTickInt
+xPortSysTickInt:
+	nop
 
 .align 8
 .func
@@ -306,7 +316,15 @@ xPortStartFirstTask:
 	csrw mtvec, t0
 #endif /* portasmHAS_CLILNT */
 
-	load_x  sp, pxCurrentTCB			/* Load pxCurrentTCB. */
+#if( portasmRISCV_SMP_SUPPORT != 0 )
+	load_x sp, pxCurrentTCBs				/* Load pxCurrentTCBs. */
+	csrr t0, mhartid
+	slli t0, t0, 3
+	add sp, sp, t0
+#else
+	load_x sp, pxCurrentTCB					/* Load pxCurrentTCB. */
+#endif
+
 	load_x  sp, 0( sp )				 	/* Read sp from first TCB member. */
 
 	load_x  x1, 0( sp ) /* Note for starting the scheduler the exception return address is used as the function return address. */
