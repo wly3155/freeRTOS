@@ -1,0 +1,3 @@
+[submodule "FreeRTOS_main"]
+	path = FreeRTOS_main
+	url = ssh://wly3155@review.gerrithub.io:29418/wly3155/FreeRTOS_main
