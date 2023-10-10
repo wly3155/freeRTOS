@@ -19,6 +19,9 @@
 #include <string.h>
 #include <stdarg.h>
 
+#include <FreeRTOS.h>
+#include <task.h>
+
 #include <include/log.h>
 #include <include/time.h>
 #include <include/uart.h>
@@ -41,6 +44,7 @@ int __wrap_printf(const char *fmt, ...)
 	char *log_buf_to_write = NULL;
 	va_list args;
 
+	taskDISABLE_INTERRUPTS();
 	log_header_format();
 	log_buf_used = strlen(log_buf);
 	log_buf_to_write = log_buf + log_buf_used;
@@ -50,6 +54,7 @@ int __wrap_printf(const char *fmt, ...)
 	usart_printf(log_buf, strlen(log_buf));
 #endif
 	va_end(args);
+taskENABLE_INTERRUPTS();
 	return 0;
 }
 
