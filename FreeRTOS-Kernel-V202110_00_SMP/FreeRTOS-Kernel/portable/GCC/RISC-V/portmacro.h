@@ -80,11 +80,10 @@ not need to be guarded with a critical section. */
 /* Architecture specifics. */
 #define portSTACK_GROWTH			( -1 )
 #define portTICK_PERIOD_MS			( ( TickType_t ) 1000 / configTICK_RATE_HZ )
-#ifdef __riscv64
-	//#error This is the RV32 port that has not yet been adapted for 64.
-	#define portBYTE_ALIGNMENT			16
+#ifdef __riscv_32e
+    #define portBYTE_ALIGNMENT      8   /* RV32E uses RISC-V EABI with reduced stack alignment requirements */
 #else
-	#define portBYTE_ALIGNMENT			16
+    #define portBYTE_ALIGNMENT      16
 #endif
 /*-----------------------------------------------------------*/
 
@@ -92,7 +91,7 @@ not need to be guarded with a critical section. */
 /* Scheduler utilities. */
 extern void vTaskSwitchContext( BaseType_t xCoreID );
 #define portYIELD() __asm volatile( "ecall" );
-#define portEND_SWITCHING_ISR( xSwitchRequired ) if( xSwitchRequired ) vTaskSwitchContext()
+#define portEND_SWITCHING_ISR( xSwitchRequired ) do { if( xSwitchRequired ) vTaskSwitchContext(); } while( 0 )
 #define portYIELD_FROM_ISR( x ) portEND_SWITCHING_ISR( x )
 /*-----------------------------------------------------------*/
 
@@ -108,7 +107,9 @@ extern void vTaskExitCritical( void );
 	__asm volatile ("csrr %0, mie" :"=r" (ulState)::);			\
 	ulState;})
 
-#define portCLEAR_INTERRUPT_MASK_FROM_ISR( uxSavedStatusValue ) ( void ) uxSavedStatusValue
+#define portCLEAR_INTERRUPT_MASK_FROM_ISR( uxSavedStatusValue ) ({		\
+	__asm volatile ("csrw mie, %0" :"=r" (uxSavedStatusValue)::);		\
+	vTaskExitCritical();})
 
 #define portDISABLE_INTERRUPTS() ({						\
 	UBaseType_t ulState;							\
@@ -122,7 +123,7 @@ extern void vTaskExitCritical( void );
 	})
 
 #define portENABLE_INTERRUPTS()		__asm volatile( "csrs mstatus, 8" )
-#define portENTER_CRITICAL()	vTaskEnterCritical()
+#define portENTER_CRITICAL()		vTaskEnterCritical()
 #define portEXIT_CRITICAL()		vTaskExitCritical()
 
 /*-----------------------------------------------------------*/

@@ -2748,7 +2748,7 @@ static BaseType_t prvCreateIdleTasks( void )
 
     return xReturn;
 }
-
+extern void vSendString( const char * pcString );
 void vTaskStartScheduler( void )
 {
     BaseType_t xReturn;
@@ -2758,6 +2758,8 @@ void vTaskStartScheduler( void )
             xReturn = xTimerCreateTimerTask();
         }
     #endif /* configUSE_TIMERS */
+
+    vSendString("enter 2762\n");
 
     xReturn = prvCreateIdleTasks();
 
@@ -2805,6 +2807,7 @@ void vTaskStartScheduler( void )
 
         /* Setting up the timer tick is hardware specific and thus in the
          * portable interface. */
+    vSendString("enter 2810\n");
         if( xPortStartScheduler() != pdFALSE )
         {
             /* Should not reach here as if the scheduler is running the
@@ -3461,7 +3464,7 @@ BaseType_t xTaskCatchUpTicks( TickType_t xTicksToCatchUp )
 
 #endif /* INCLUDE_xTaskAbortDelay */
 /*----------------------------------------------------------*/
-
+#include <include/log.h>
 BaseType_t xTaskIncrementTick( void )
 {
     TCB_t * pxTCB;
@@ -3473,8 +3476,11 @@ BaseType_t xTaskIncrementTick( void )
         BaseType_t xCoreYieldList[ configNUM_CORES ] = { pdFALSE };
     #endif /* configUSE_PREEMPTION */
 
+    logi("tick %lu\n", xTickCount);
+    //vSendString("enter 3480\n");
     taskENTER_CRITICAL();
     {
+//vSendString("enter 3480\n");
         /* Called by the portable layer each time a tick interrupt occurs.
          * Increments the tick then checks to see if the new tick value will cause any
          * tasks to be unblocked. */
@@ -3493,7 +3499,7 @@ BaseType_t xTaskIncrementTick( void )
             /* Increment the RTOS tick, switching the delayed and overflowed
              * delayed lists if it wraps to 0. */
             xTickCount = xConstTickCount;
-
+    logi("3502 %lu\n", xTickCount);
             if( xConstTickCount == ( TickType_t ) 0U ) /*lint !e774 'if' does not always evaluate to false as it is looking for an overflow. */
             {
                 taskSWITCH_DELAYED_LISTS();
@@ -3627,6 +3633,7 @@ BaseType_t xTaskIncrementTick( void )
                         }
                     }
                 }
+    logi("3636 %lu\n", xTickCount);
             #endif /* configUSE_PREEMPTION */
 
             #if ( configUSE_PREEMPTION == 1 )
@@ -3801,7 +3808,7 @@ void vTaskSwitchContext( BaseType_t xCoreID )
      *  suspended the scheduler. We don't want to simply set xYieldPending
      *  and move on if another core suspended the scheduler. We should only
      *  do that if the current core has suspended the scheduler. */
-
+    xCoreID = uxPortGetProcessorId();
     portGET_TASK_LOCK(); /* Must always acquire the task lock first */
     portGET_ISR_LOCK();
     {

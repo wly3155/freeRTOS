@@ -13,19 +13,18 @@
  *
  */
 
-#ifndef __CONTAINER_OF_H__
-#define __CONTAINER_OF_H__
+#include<stdint.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+#include <FreeRTOS.h>
+#include <task.h>
 
-#define container_of(ptr, type, member) ({		\
-	void *__mptr = (void *)(ptr);			\
-	((type *)(__mptr - offsetof(type, member))); })
-
-#ifdef __cplusplus
+void* __wrap_malloc(uint32_t size)
+{
+	return pvPortMalloc(size);
 }
-#endif
 
-#endif
+void __wrap_free(void * ptr)
+{
+	vPortFree(ptr);
+}
+
