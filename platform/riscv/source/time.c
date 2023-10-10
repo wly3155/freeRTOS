@@ -18,12 +18,12 @@
 
 uint64_t get_boot_time_ns(void)
 {
-    uint32_t high = 0, low = 0;
+	uint32_t high = 0, low = 0;
 
-    do {
-        high = csr_read(CSR_TIMEH);
-        low = csr_read(CSR_TIME);
-    } while (high != csr_read(CSR_TIMEH));
+	do {
+		high = csr_read(CSR_TIMEH);
+		low = csr_read(CSR_TIME);
+	} while (high != csr_read(CSR_TIMEH));
 
-    return (((uint64_t)high << 32 | low) * 100);
+	return (((uint64_t)high << 32 | low) * 100);
 }

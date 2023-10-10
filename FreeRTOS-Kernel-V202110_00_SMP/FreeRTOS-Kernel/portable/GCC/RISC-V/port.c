@@ -176,13 +176,16 @@ extern void xPortStartFirstTask( void );
 	/* If there is a CLINT then it is ok to use the default implementation
 	in this file, otherwise vPortSetupTimerInterrupt() must be implemented to
 	configure whichever clock is to be used to generate the tick interrupt. */
+    vSendString("port.c enter 179\n");
 	vPortSetupTimerInterrupt();
-
+    vSendString("port.c enter 181\n");
 	#if( ( configMTIME_BASE_ADDRESS != 0 ) && ( configMTIMECMP_BASE_ADDRESS != 0 ) )
 	{
 		/* Enable mtime and external interrupts.  1<<7 for timer interrupt, 1<<11
 		for external interrupt.  _RB_ What happens here when mtime is not present as
 		with pulpino? */
+
+		__asm volatile( "csrs mstatus, %0" :: "r"(0x00) );
 		__asm volatile( "csrs mie, %0" :: "r"(0x880) );
 	}
 	#else
@@ -192,6 +195,7 @@ extern void xPortStartFirstTask( void );
 	}
 	#endif /* ( configMTIME_BASE_ADDRESS != 0 ) && ( configMTIMECMP_BASE_ADDRESS != 0 ) */
 
+    vSendString("port.c enter 195\n");
 	xPortStartFirstTask();
 
 	/* Should not get here as after calling xPortStartFirstTask() only tasks
@@ -215,12 +219,19 @@ UBaseType_t uxPortGetCPUClock()
 
 UBaseType_t uxPortGetProcessorId()
 {
-	UBaseType_t cpu_id = 0;
+	//UBaseType_t cpu_id = 0;
+//
+	//__asm volatile (
+		//"csrr %0, mhartid"
+		//: "=r"(cpu_id)
+	//);
+//
+	//return cpu_id;
 
-	__asm volatile (
-		"csrr %0, mhartid"
-		: "=r"(cpu_id)
-	);
+	return 0;
+}
 
-	return cpu_id;
+void portHANDLE_EXCEPTION(UBaseType_t mcause, UBaseType_t mepc)
+{
+	configASSERT(0);
 }

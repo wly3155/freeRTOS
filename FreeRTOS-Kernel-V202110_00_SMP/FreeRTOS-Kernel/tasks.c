@@ -2748,7 +2748,7 @@ static BaseType_t prvCreateIdleTasks( void )
 
     return xReturn;
 }
-
+extern void vSendString( const char * pcString );
 void vTaskStartScheduler( void )
 {
     BaseType_t xReturn;
@@ -2758,6 +2758,8 @@ void vTaskStartScheduler( void )
             xReturn = xTimerCreateTimerTask();
         }
     #endif /* configUSE_TIMERS */
+
+    vSendString("enter 2762\n");
 
     xReturn = prvCreateIdleTasks();
 
@@ -2805,6 +2807,7 @@ void vTaskStartScheduler( void )
 
         /* Setting up the timer tick is hardware specific and thus in the
          * portable interface. */
+    vSendString("enter 2810\n");
         if( xPortStartScheduler() != pdFALSE )
         {
             /* Should not reach here as if the scheduler is running the
@@ -3461,7 +3464,7 @@ BaseType_t xTaskCatchUpTicks( TickType_t xTicksToCatchUp )
 
 #endif /* INCLUDE_xTaskAbortDelay */
 /*----------------------------------------------------------*/
-
+#include <include/log.h>
 BaseType_t xTaskIncrementTick( void )
 {
     TCB_t * pxTCB;
@@ -3473,6 +3476,8 @@ BaseType_t xTaskIncrementTick( void )
         BaseType_t xCoreYieldList[ configNUM_CORES ] = { pdFALSE };
     #endif /* configUSE_PREEMPTION */
 
+    //logi("tick %lu\n", xTickCount);
+    //vSendString("enter 3480\n");
     taskENTER_CRITICAL();
     {
         /* Called by the portable layer each time a tick interrupt occurs.

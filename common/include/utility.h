@@ -19,16 +19,6 @@
 extern "C" {
 #endif
 
-#include <stdint.h>
-#include <stddef.h>
-
-extern void *pvPortMalloc(size_t xWantedSize);
-extern void vPortFree(void * pv);
-#define malloc(x)	pvPortMalloc(x)
-#define free(x)		vPortFree(x)
-
-#define log(x)		vSendString(x)
-
 #ifdef __cplusplus
 }
 #endif
